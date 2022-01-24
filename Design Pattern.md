@@ -1,4 +1,4 @@
-[TOC]
+
 
 本文件用於本人自用學習筆記
 
@@ -9,9 +9,15 @@
 
 # Design Pattern
 
+## 目錄
+
+[TOC]
+
+
+
 ## 建立型模式
 
-### 工廠方法模式(Factory Method Pattern)
+### **工廠方法模式(Factory Method Pattern)**
 
 #### 定義
 
@@ -19,7 +25,7 @@
 
 #### UML
 
-<img src="Design Pattern.assets/20112528fb3BbVITVH.png" style="zoom:50%;" />
+<img src="Design Pattern.assets/20112528fb3BbVITVH.png" style="zoom:70%;" />
 
 - Creator：創造者經由FactoryMethod創造產品
 - Product：被創造的產品類別
@@ -168,6 +174,290 @@ Product Describe : Medium
 Product Type : pork chop
 Product Describe : It is a pork chop.
 ********************************************************************************************
+*/
+```
+
+------
+
+### **抽象工廠模式 ( Abstract Factory )**
+
+#### 定義
+
+抽象工廠模式( Abstract Factory)，提供一個建立一系列相關或互相依賴物件的介面，而無需指定它們具體的類別。
+
+#### UML
+
+<img src="Design Pattern.assets/201125282oz5lmOvYH.png" style="zoom:70%;" />
+
+- AbstractProductA：產品A系列的介面。
+- ProductA1、ProductA2：A系列下的各個產品。
+- AbsctractProductB：產品B系列的介面。
+- ProductB1、ProductB2：B系列下的各個產品。
+- AbstractFactory：抽象工廠。
+- ConcreteFactory1、ConcreteFactory2：具體的工廠實現。
+
+#### 優點
+
+-  你可以確保同一工廠生成的產品相互匹配。
+-  你可以避免客戶端和具體產品代碼的耦合。
+-  單一職責原則。 你可以將產品生成代碼抽取到同一位置， 使得代碼易於維護。
+-  開閉原則。 向應用程式中引入新產品變體時， 你無需修改客戶端代碼。
+
+#### 缺點
+
+-  由於採用該模式需要向應用中引入眾多介面和類， 代碼可能會比之前更加復雜。
+
+#### Golang範例
+
+##### 抽象工廠interface : iFactory.go
+
+```go
+package main
+
+import "fmt"
+
+type iFactory interface {
+	makeShirt() iShirt
+	makeShoe() iShoe
+}
+
+func getSportsFactory(brand string) (iFactory, error) {
+	if brand == "UA" {
+		return &UA{}, nil
+	}
+
+	if brand == "Nike" {
+		return &Nike{}, nil
+	}
+
+	return nil, fmt.Errorf("Wrong brand type passed")
+}
+```
+
+##### 具體工廠 : nike.go
+
+```go
+package main
+
+type Nike struct {
+}
+
+func (n *Nike) makeShirt() iShirt {
+	return &nikeShirt{
+		shirt{
+			logo: "nike",
+			size: "XXL",
+		},
+	}
+}
+
+func (n *Nike) makeShoe() iShoe {
+	return &nikeShoe{
+		shoe{
+			logo: "nike",
+			size: "US_12",
+		},
+	}
+}
+```
+
+
+
+##### 具體工廠 : under_armour.go
+
+```go
+package main
+
+type UA struct {
+}
+
+func (ua *UA) makeShirt() iShirt {
+	return &uaShirt{
+		shirt{
+			logo: "UA",
+			size: "XL",
+		},
+	}
+}
+
+func (ua *UA) makeShoe() iShoe {
+	return &uaShoe{
+		shoe{
+			logo: "UA",
+			size: "US_11",
+		},
+	}
+}
+```
+
+##### 抽象產品 : iShirt.go
+
+```go
+package main
+
+type iShirt interface {
+	setLogo(logo string)
+	setSize(size string)
+	getLogo() string
+	getSize() string
+}
+
+type shirt struct {
+	logo string
+	size string
+}
+
+func (s *shirt) setLogo(logo string) {
+	s.logo = logo
+}
+
+func (s *shirt) getLogo() string {
+	return s.logo
+}
+
+func (s *shirt) setSize(size string) {
+	s.size = size
+}
+
+func (s *shirt) getSize() string {
+	return s.size
+}
+```
+
+##### 具體產品 : nikeShirt.go
+
+```go
+package main
+
+type nikeShirt struct {
+	shirt
+}
+```
+
+##### 具體產品 : uaShirt.go
+
+```go
+package main
+
+type uaShirt struct {
+	shirt
+}
+```
+
+##### 抽象產品 : iShoe.go
+
+```go
+package main
+
+type iShoe interface {
+	setLogo(logo string)
+	setSize(size string)
+	getLogo() string
+	getSize() string
+}
+
+type shoe struct {
+	logo string
+	size string
+}
+
+func (s *shoe) setLogo(logo string) {
+	s.logo = logo
+}
+
+func (s *shoe) getLogo() string {
+	return s.logo
+}
+
+func (s *shoe) setSize(size string) {
+	s.size = size
+}
+
+func (s *shoe) getSize() string {
+	return s.size
+}
+```
+
+##### 具體產品 : nikeShoe.go
+
+```go
+package main
+
+type nikeShoe struct {
+	shoe
+}
+```
+
+##### 具體產品 : uaShoe.go
+
+```go
+package main
+
+type uaShoe struct {
+	shoe
+}
+```
+
+##### main.go
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	nike_factory, err := getSportsFactory("Nike")
+	if err != nil {
+		fmt.Println(err)
+	}
+	nikeShoe := nike_factory.makeShoe()
+	nikeShirt := nike_factory.makeShirt()
+	printShirtDetails(nikeShirt)
+	printShoeDetails(nikeShoe)
+
+	ua_factory, err := getSportsFactory("UA")
+	if err != nil {
+		fmt.Println(err)
+	}
+	uaShirt := ua_factory.makeShirt()
+	uaShoe := ua_factory.makeShoe()
+	printShirtDetails(uaShirt)
+	printShoeDetails(uaShoe)
+
+}
+
+func printShoeDetails(s iShoe) {
+	fmt.Println("Shoe")
+	fmt.Printf("Logo : %s\n", s.getLogo())
+	fmt.Printf("Size : %s\n", s.getSize())
+	fmt.Println("************************************************************************")
+}
+
+func printShirtDetails(s iShirt) {
+	fmt.Println("Shirt")
+	fmt.Printf("Logo : %s\n", s.getLogo())
+	fmt.Printf("Size : %s\n", s.getSize())
+	fmt.Println("************************************************************************")
+}
+
+/*
+Output:
+Shirt
+Logo : nike
+Size : XXL
+************************************************************************
+Shoe
+Logo : nike
+Size : US_12
+************************************************************************
+Shirt
+Logo : UA
+Size : XL
+************************************************************************
+Shoe
+Logo : UA
+Size : US_11
+************************************************************************
 */
 ```
 
