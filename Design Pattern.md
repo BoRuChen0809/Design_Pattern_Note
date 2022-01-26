@@ -23,7 +23,7 @@
 
 #### UML
 
-<img src="Design Pattern.assets/20112528fb3BbVITVH.png" style="zoom:70%;" />
+<img src="Design Pattern.assets/20112528fb3BbVITVH.png" style="zoom:55%;"/>
 
 - Creator：創造者經由FactoryMethod創造產品
 - Product：被創造的產品類別
@@ -701,3 +701,201 @@ Printing hierarchy for clone Folder
     File3_clone
 */
 ```
+
+## **建造者模式 ( Builder Pattern)**
+
+#### 定義
+
+建築者模式是設計來提供一個有彈性解決方案，目的是為了要分離一個複雜物品的建造和表示建造的方式，最終實現用同一標準的製造工序能產出不同產品。
+
+#### UML
+
+<img src="Design Pattern.assets/20112528PhfQoo1N4v.png" style="zoom:60%;" />
+
+一個物品在建造完成的過程中，需要組成需要設定過多的元件，或裝配過程是有順序的，可以在一一設定完所需要的元件後再產生我們所需要的物件。主要的角色有`建造者`、`指揮者`和`產品`，指揮者控制建造的過程，並且可以用來區隔用戶和建造過程的關聯性。
+
+#### 優點
+
+- 你可以分步創建對象，暫緩創建步驟或遞歸運行創建步驟。
+- 生成不同形式的產品時， 你可以復用相同的製造代碼。
+- 單一職責原則。 你可以將復雜構造代碼從產品的業務邏輯中分離出來。
+
+#### 缺點
+
+- 由於該模式需要新增多個類， 因此代碼整體復雜程度會有所增加。
+
+#### Golang範例
+
+##### 建造者interface : iBuilder.go
+
+```go
+package main
+
+type iBuilder interface {
+    setWindowType()
+    setDoorType()
+    setNumFloor()
+    getHouse() house
+}
+
+func getBuilder(builderType string) iBuilder {
+    if builderType == "normal" {
+        return &normalBuilder{}
+    }
+
+    if builderType == "igloo" {
+        return &iglooBuilder{}
+    }
+    return nil
+}
+```
+
+##### 具體建造者 : normalBuilder.go
+
+```go
+package main
+
+type normalBuilder struct {
+    windowType string
+    doorType   string
+    floor      int
+}
+
+func newNormalBuilder() *normalBuilder {
+    return &normalBuilder{}
+}
+
+func (b *normalBuilder) setWindowType() {
+    b.windowType = "Wooden Window"
+}
+
+func (b *normalBuilder) setDoorType() {
+    b.doorType = "Wooden Door"
+}
+
+func (b *normalBuilder) setNumFloor() {
+    b.floor = 2
+}
+
+func (b *normalBuilder) getHouse() house {
+    return house{
+        doorType:   b.doorType,
+        windowType: b.windowType,
+        floor:      b.floor,
+    }
+}
+```
+
+##### 具體建造者 : iglooBuilder.go
+
+```go
+package main
+
+type iglooBuilder struct {
+    windowType string
+    doorType   string
+    floor      int
+}
+
+func newIglooBuilder() *iglooBuilder {
+    return &iglooBuilder{}
+}
+
+func (b *iglooBuilder) setWindowType() {
+    b.windowType = "Snow Window"
+}
+
+func (b *iglooBuilder) setDoorType() {
+    b.doorType = "Snow Door"
+}
+
+func (b *iglooBuilder) setNumFloor() {
+    b.floor = 1
+}
+
+func (b *iglooBuilder) getHouse() house {
+    return house{
+        doorType:   b.doorType,
+        windowType: b.windowType,
+        floor:      b.floor,
+    }
+}
+```
+
+##### 產品 : house.go
+
+```go
+package main
+
+type house struct {
+    windowType string
+    doorType   string
+    floor      int
+}
+```
+
+##### 指揮者 : dirctor.go
+
+```go
+package main
+
+type director struct {
+    builder iBuilder
+}
+
+func newDirector(b iBuilder) *director {
+    return &director{
+        builder: b,
+    }
+}
+
+func (d *director) setBuilder(b iBuilder) {
+    d.builder = b
+}
+
+func (d *director) buildHouse() house {
+    d.builder.setDoorType()
+    d.builder.setWindowType()
+    d.builder.setNumFloor()
+    return d.builder.getHouse()
+}
+```
+
+##### main.go
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    normalBuilder := getBuilder("normal")
+    iglooBuilder := getBuilder("igloo")
+
+    director := newDirector(normalBuilder)
+    normalHouse := director.buildHouse()
+
+    fmt.Printf("Normal House Door Type: %s\n", normalHouse.doorType)
+    fmt.Printf("Normal House Window Type: %s\n", normalHouse.windowType)
+    fmt.Printf("Normal House Num Floor: %d\n", normalHouse.floor)
+
+    director.setBuilder(iglooBuilder)
+    iglooHouse := director.buildHouse()
+
+    fmt.Printf("\nIgloo House Door Type: %s\n", iglooHouse.doorType)
+    fmt.Printf("Igloo House Window Type: %s\n", iglooHouse.windowType)
+    fmt.Printf("Igloo House Num Floor: %d\n", iglooHouse.floor)
+}
+
+/*
+Output:
+Normal House Door Type: Wooden Door
+Normal House Window Type: Wooden Window
+Normal House Num Floor: 2
+
+Igloo House Door Type: Snow Door
+Igloo House Window Type: Snow Window
+Igloo House Num Floor: 1
+*/
+```
+
