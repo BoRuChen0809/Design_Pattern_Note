@@ -1,5 +1,3 @@
-
-
 本文件用於本人自用學習筆記
 
 資料來源:
@@ -458,6 +456,117 @@ Shoe
 Logo : UA
 Size : US_11
 ************************************************************************
+*/
+```
+
+## 單例模式 (Singleton)
+
+#### 定義
+
+只有一個實例，而且自行實例化並向整個系統提供這個實例。
+
+#### UML
+
+<img src="Design Pattern.assets/20112528d85wEM7c50.png" alt="20112528d85wEM7c50" style="zoom:75%;" />
+
+#### 優點
+
+- 你可以保證一個類只有一個實例。
+- 你獲得了一個指向該實例的全局訪問節點。
+- 僅在首次請求單例對象時對其進行初始化。
+
+#### 缺點
+
+- 違反了_單一職責原則_。 該模式同時解決了兩個問題。
+- 單例模式可能掩蓋不良設計， 比如程式各組件之間相互瞭解過多等。
+- 該模式在多線程環境下需要進行特殊處理， 避免多個線程多次創建單例對象。
+- 單例的客戶端代碼單元測試可能會比較困難，因為許多測試框架以基於繼承的方式創建模擬對象。由於單例類的構造函數是私有的，而且絕大部分語言無法重寫靜態方法，所以你需要想出仔細考慮模擬單例的方法。要麼乾脆不編寫測試代碼，或者不使用單例模式。
+
+#### Golang範例
+
+##### 單例 : sun.go
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+var lock = &sync.Mutex{}
+
+type sun struct {
+	description string
+}
+
+func (s *sun) Describe() string {
+	return s.description
+}
+
+var sunInstance *sun
+
+func getSun() *sun {
+	if sunInstance == nil {
+		lock.Lock()
+		defer lock.Unlock()
+		if sunInstance == nil {
+			now := time.Now().Format("2006/01/02 15:04:05")
+			fmt.Println("Create Sun.")
+			sunInstance = &sun{fmt.Sprintf("created on : %s", now)}
+			fmt.Println(sunInstance.Describe())
+			return sunInstance
+		} else {
+			fmt.Println("Sun had created.")
+			fmt.Println(sunInstance.Describe())
+			return sunInstance
+		}
+	} else {
+		fmt.Println("Sun had created.")
+		fmt.Println(sunInstance.Describe())
+		return sunInstance
+	}
+}
+
+```
+
+##### main.go
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	for i := 0; i < 10; i++ {
+		go getSun()
+	}
+	fmt.Scanln()
+}
+
+/*
+Output:
+Create Sun.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
+Sun had created.
+created on : 2022/01/26 09:02:41
 */
 ```
 
