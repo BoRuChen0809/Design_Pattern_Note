@@ -13,7 +13,7 @@
 
 
 
-## 建立型模式
+## **建立型模式(Creational Pattern)**
 
 ### **工廠方法模式(Factory Method Pattern)**
 
@@ -459,7 +459,7 @@ Size : US_11
 */
 ```
 
-## **單例模式 (Singleton)**
+### **單例模式 (Singleton)**
 
 #### 定義
 
@@ -468,6 +468,8 @@ Size : US_11
 #### UML
 
 <img src="Design Pattern.assets/20112528d85wEM7c50.png" alt="20112528d85wEM7c50" style="zoom:75%;" />
+
+定義一個操作，允許客戶端使用這個操作取得他的唯一實例，GetInstance()負責建立他的唯一實例。
 
 #### 優點
 
@@ -570,7 +572,7 @@ created on : 2022/01/26 09:02:41
 */
 ```
 
-## **原形模式 ( Prototype Pattern )**
+### **原形模式 ( Prototype Pattern )**
 
 #### 定義
 
@@ -702,11 +704,11 @@ Printing hierarchy for clone Folder
 */
 ```
 
-## **建造者模式 ( Builder Pattern)**
+### **建造者模式 ( Builder Pattern)**
 
 #### 定義
 
-建築者模式是設計來提供一個有彈性解決方案，目的是為了要分離一個複雜物品的建造和表示建造的方式，最終實現用同一標準的製造工序能產出不同產品。
+建造者模式是設計來提供一個有彈性解決方案，目的是為了要分離一個複雜物品的建造和表示建造的方式，最終實現用同一標準的製造工序能產出不同產品。
 
 #### UML
 
@@ -897,5 +899,166 @@ Igloo House Door Type: Snow Door
 Igloo House Window Type: Snow Window
 Igloo House Num Floor: 1
 */
+```
+
+## **結構型模式(Structural Pattern)**
+
+### 外觀模式 ( Facade Pattern )
+
+#### 定義
+
+外觀模式(Facade)，為子系統中的一組介面提供一個一致的介面，此模式定義了一個高階介面，這個介面使得這一子系統更加容易使用。
+
+#### UML
+
+#### <img src="Design Pattern.assets/20112528PhfQoo1N4v-16434229871491.png" style="zoom:50%;" />
+
+客戶端(Client)只要統一從Facade這個介面，就可以不用管背後子類別的邏輯。
+
+#### 優點
+
+- 將自己的程式碼獨立於複雜的子系統
+
+#### 缺點
+
+- 外觀可能成為與所有子類別都耦合的God Object
+
+#### Golang範例
+
+##### 外觀 : restaurantFacade.go
+
+```go
+package main
+
+type restaurant struct {
+	waiter    *Waiter
+	cleaner   *Cleaner
+	chef      *Chef
+	vegvendor *VegVendor
+}
+
+func newRestaurant() *restaurant {
+	return &restaurant{
+		waiter:    newWaiter(),
+		cleaner:   newCleaner(),
+		chef:      newChef(),
+		vegvendor: newVegVendor(),
+	}
+}
+
+func (r *restaurant) order_dishes() {
+	r.vegvendor.purchase()
+	r.waiter.order()
+	r.chef.cook()
+	r.waiter.service()
+	r.cleaner.clean()
+}
+
+```
+
+##### 子系統 : VegVendor.go
+
+```go
+package main
+
+import "fmt"
+
+type VegVendor struct {
+}
+
+func newVegVendor() *VegVendor {
+	return &VegVendor{}
+}
+
+func (v *VegVendor) purchase() {
+	fmt.Println("供應蔬菜......")
+}
+
+```
+
+##### 子系統 : Waiter.go
+
+```go
+package main
+
+import "fmt"
+
+type Waiter struct {
+}
+
+func newWaiter() *Waiter {
+	return &Waiter{}
+}
+
+func (w *Waiter) order() {
+	fmt.Println("接待、入座、點菜......")
+}
+
+func (w *Waiter) service() {
+	fmt.Println("上菜......")
+}
+
+```
+
+##### 子系統 : Chef.go
+
+```go
+package main
+
+import "fmt"
+
+type Chef struct {
+}
+
+func newChef() *Chef {
+	return &Chef{}
+}
+
+func (c *Chef) cook() {
+	fmt.Println("下廚烹飪......")
+}
+
+```
+
+##### 子系統 : Cleaner.go
+
+```go
+package main
+
+import "fmt"
+
+type Cleaner struct {
+}
+
+func newCleaner() *Cleaner {
+	return &Cleaner{}
+}
+
+func (c *Cleaner) clean() {
+	fmt.Println("清理桌面、洗碗......")
+}
+
+```
+
+##### main.go
+
+```go
+package main
+
+func main() {
+	r := newRestaurant()
+
+	r.order_dishes()
+}
+
+/*
+Output:
+供應蔬菜......
+接待、入座、點菜......
+下廚烹飪......
+上菜......
+清理桌面、洗碗......
+*/
+
 ```
 
