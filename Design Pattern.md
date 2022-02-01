@@ -903,7 +903,7 @@ Igloo House Num Floor: 1
 
 ## **結構型模式(Structural Pattern)**
 
-### 外觀模式 ( Facade Pattern )
+### **外觀模式 ( Facade Pattern )**
 
 #### 定義
 
@@ -1060,5 +1060,249 @@ Output:
 清理桌面、洗碗......
 */
 
+```
+
+### **組合模式 ( Composite Pattern)**
+
+#### 定義
+
+組合模式 ( Composite )，將物件組合成樹形結構以表示「 部分 - 整體 」的層次結構。組合模式使得用戶對單個物件和組合物件的操作時會得到統一的回應。
+
+#### UML
+
+<img src="Design Pattern.assets/20112528y9tmrJlZ5C.png" style="zoom:50%;" />
+
+#### 優點
+
+- 你可以利用多態和遞歸機制更方便地使用復雜樹結構。
+- 開閉原則。 無需更改現有代碼， 你就可以在應用中添加新元素， 使其成為對象樹的一部分。
+
+#### 缺點
+
+- 對於功能差異較大的類，提供公共介面或許會有困難。 在特定情況下，你需要過度一般化組件介面，使其變得令人難以理解。
+
+#### Golang範例
+
+##### Component interface : army.go
+
+```go
+package main
+
+type army interface {
+	showInfo()
+	getLevel() int
+	getPeople() int
+	getNmae() string
+}
+
+```
+
+##### Leaf : squard.go
+
+```go
+//班
+package main
+
+import "fmt"
+
+type squard struct {
+	Name   string
+	People int
+}
+
+func (s *squard) showInfo() {
+	fmt.Printf("the squard name is %s, there are %d people in here.\n", s.getNmae(), s.getPeople())
+}
+
+func (s *squard) getLevel() int {
+	return 1
+}
+
+func (s *squard) getPeople() int {
+	return s.People
+}
+
+func (s *squard) setPeople(num int) {
+	s.People = num
+}
+
+func (s *squard) getNmae() string {
+	return s.Name
+}
+
+func (s *squard) setName(name string) {
+	s.Name = name
+}
+
+```
+
+##### Composite : platoon.go
+
+```go
+//排
+package main
+
+import "fmt"
+
+type platoon struct {
+	children []army
+	Name     string
+	People   int
+}
+
+func (p *platoon) showInfo() {
+	fmt.Printf("the platoon name is %s, there are %d people in here. ", p.getNmae(), p.getPeople())
+	fmt.Printf("there are %d squards in this platoon, detail:\n", len(p.children))
+	for _, a := range p.children {
+		fmt.Print("。")
+		a.showInfo()
+	}
+}
+
+func (p *platoon) getLevel() int {
+	return 2
+}
+
+func (p *platoon) setPeople() {
+	num := 0
+	for _, a := range p.children {
+		num += a.getPeople()
+	}
+	p.People = num
+}
+
+func (p *platoon) getPeople() int {
+	p.setPeople()
+	return p.People
+}
+
+func (p *platoon) getNmae() string {
+	return p.Name
+}
+
+func (p *platoon) setName(name string) {
+	p.Name = name
+}
+
+func (p *platoon) add(a army) {
+	if p.getLevel()-a.getLevel() != 1 {
+		fmt.Println("this operation is invaild")
+	} else {
+		p.children = append(p.children, a)
+	}
+}
+
+```
+
+##### Composite : company.go
+
+```go
+//連
+package main
+
+import "fmt"
+
+type company struct {
+	children []army
+	Name     string
+	People   int
+}
+
+func (c *company) showInfo() {
+	fmt.Printf("the company name is %s, there are %d people in here. ", c.getNmae(), c.getPeople())
+	fmt.Printf("there are %d platoons in this platoon, detail:\n", len(c.children))
+	for _, a := range c.children {
+		fmt.Print("。")
+		a.showInfo()
+	}
+}
+
+func (c *company) getLevel() int {
+	return 3
+}
+
+func (c *company) setPeople() {
+	num := 0
+	for _, a := range c.children {
+		num += a.getPeople()
+	}
+	c.People = num
+}
+
+func (c *company) getPeople() int {
+	c.setPeople()
+	return c.People
+}
+
+func (c *company) getNmae() string {
+	return c.Name
+}
+
+func (c *company) setName(name string) {
+	c.Name = name
+}
+
+func (c *company) add(a army) {
+	if c.getLevel()-a.getLevel() != 1 {
+		fmt.Println("this operation is invaild")
+	} else {
+		c.children = append(c.children, a)
+	}
+}
+
+```
+
+##### main.go
+
+```go
+package main
+
+func main() {
+	var a army
+
+	squard_1 := &squard{"1", 15}
+	squard_2 := &squard{"2", 20}
+	squard_3 := &squard{"3", 11}
+
+	platoon_1 := &platoon{Name: "P1"}
+	platoon_1.add(squard_1)
+	platoon_1.add(squard_2)
+	platoon_1.add(squard_3)
+
+	platoon_2 := &platoon{Name: "P2"}
+	platoon_2.add(&squard{"4", 18})
+	platoon_2.add(&squard{"7", 19})
+	platoon_2.add(&squard{"5", 10})
+
+	platoon_3 := &platoon{Name: "P3"}
+	platoon_3.add(&squard{"6", 14})
+	platoon_3.add(&squard{"9", 13})
+	platoon_3.add(&squard{"8", 17})
+
+	C := &company{Name: "Company"}
+	C.add(platoon_2)
+	C.add(platoon_3)
+	C.add(platoon_1)
+
+	a = C
+	a.showInfo()
+}
+
+/*
+Output:
+the company name is Company, there are 137 people in here. there are 3 platoons in this company, detail:
+。the platoon name is P2, there are 47 people in here. there are 3 squards in this platoon, detail:
+。the squard name is 4, there are 18 people in here.
+。the squard name is 7, there are 19 people in here.
+。the squard name is 5, there are 10 people in here.
+。the platoon name is P3, there are 44 people in here. there are 3 squards in this platoon, detail:
+。the squard name is 6, there are 14 people in here.
+。the squard name is 9, there are 13 people in here.
+。the squard name is 8, there are 17 people in here.
+。the platoon name is P1, there are 46 people in here. there are 3 squards in this platoon, detail:
+。the squard name is 1, there are 15 people in here.
+。the squard name is 2, there are 20 people in here.
+。the squard name is 3, there are 11 people in here.
+*/
 ```
 
