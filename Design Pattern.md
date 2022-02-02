@@ -901,6 +901,8 @@ Igloo House Num Floor: 1
 */
 ```
 
+------
+
 ## **結構型模式(Structural Pattern)**
 
 ### **外觀模式 ( Facade Pattern )**
@@ -1303,6 +1305,125 @@ the company name is Company, there are 137 people in here. there are 3 platoons 
 。the squard name is 1, there are 15 people in here.
 。the squard name is 2, there are 20 people in here.
 。the squard name is 3, there are 11 people in here.
+*/
+```
+
+## **裝飾模式(Decorator)**
+
+#### 定義
+
+動態的給一個類別添加額外的職責。就增加功能來說，裝飾模式相比產生子類別更為靈活。
+
+裝飾模式的角色有元件和裝飾，裝飾需要建構在被裝飾的元件上。是一種繼承關係的替代方案。裝飾物不同但是元件的本質不變。
+
+#### UML
+
+<img src="Design Pattern.assets/20112528fzlaKgAdOc.png" style="zoom:67%;" />
+
+#### 優點
+
+- 你無需創建新子類即可擴展對象的行為。
+- 你可以在運行時添加或刪除對象的功能。
+- 你可以用多個裝飾封裝對象來組合幾種行為。
+- 單一職責原則。可以將實現了許多不同行為的一個大類拆分為多個較小的類。
+
+#### 缺點
+
+-  在封裝器棧中刪除特定封裝器比較困難。
+- 實現行為不受裝飾棧順序影響的裝飾比較困難。
+- 各層的初始化配置代碼看上去可能會很糟糕。
+
+#### Golang範例
+
+##### 元件interface : pizza.go
+
+```go
+package main
+
+type pizza interface {
+	getPrice() int
+}
+
+```
+
+##### 具體元件 : peppyPaneer.go
+
+```go
+package main
+
+type peppyPaneer struct{}
+
+func (p *peppyPaneer) getPrice() int {
+	return 20
+}
+
+```
+
+##### 具體元件 : veggeMania.go
+
+```go
+package main
+
+type veggeMania struct{}
+
+func (v *veggeMania) getPrice() int {
+	return 15
+}
+
+```
+
+##### 具體裝飾 : cheeseTopping.go
+
+```go
+package main
+
+type cheeseTopping struct {
+	pizza pizza
+}
+
+func (c *cheeseTopping) getPrice() int {
+	return c.pizza.getPrice() + 10
+}
+
+```
+
+##### 具體裝飾 : tomatoTopping.go
+
+```go
+package main
+
+type tomatoTopping struct {
+	pizza pizza
+}
+
+func (t *tomatoTopping) getPrice() int {
+	return t.pizza.getPrice() + 8
+}
+
+```
+
+##### main.go
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	V := &veggeMania{}
+	VwithCheese := &cheeseTopping{pizza: V}
+	fmt.Printf("素食披薩加起司:%d元\n", VwithCheese.getPrice())
+
+	P := &peppyPaneer{}
+	PwithTomato := &tomatoTopping{pizza: P}
+	PwithTomatoCheese := &cheeseTopping{pizza: PwithTomato}
+	fmt.Printf("芝士爆裂披薩加番茄和起司:%d元\n", PwithTomatoCheese.getPrice())
+}
+
+/*
+Output:
+素食披薩加起司:25元
+芝士爆裂披薩加番茄和起司:38元
 */
 ```
 
