@@ -1308,7 +1308,7 @@ the company name is Company, there are 137 people in here. there are 3 platoons 
 */
 ```
 
-## **裝飾模式(Decorator)**
+### **裝飾模式(Decorator)**
 
 #### 定義
 
@@ -1425,5 +1425,120 @@ Output:
 素食披薩加起司:25元
 芝士爆裂披薩加番茄和起司:38元
 */
+```
+
+### 轉接器模式 ( Adapter Pattern )
+
+#### 定義
+
+用一個介面來轉換另一個已存在的類別。這是經常被使用來用一個已存在的類別，用一個介面來包裝已存在類別使兩個不相容的類別可以共同工作。
+
+#### UML
+
+![structure-object-adapter](Design Pattern.assets/structure-object-adapter.png)
+
+#### 優點
+
+- 單一職責原則:你可以將介面或數據轉換程式碼從程式主要業務邏輯中分離。
+- 開閉原則:只要客戶端代碼通過客戶端介面與適配器進行交互，你就能在不修改現有客戶端代碼的情況下在程式中添加新類型的適配器。
+
+#### 缺點
+
+- 程式碼整體復雜度增加，因為你需要新增一系列介面和類。 有時直接更改服務類使其與其他代碼相容會更簡單。
+
+#### Golang範例
+
+##### client端interface : monitor.go
+
+```go
+package main
+
+type monitor interface {
+	display()
+}
+
+```
+
+##### Adapter : DP.go
+
+```go
+package main
+
+import "fmt"
+
+type Display struct{}
+
+func (dp *Display) display() {
+	fmt.Println("DP monitor displaying......")
+}
+
+```
+
+##### Adapter : VGA_Adapter.go
+
+```go
+package main
+
+import "fmt"
+
+type VGA_Adapter struct {
+	vga *VGA
+}
+
+func (vgaa *VGA_Adapter) display() {
+	fmt.Println("adapter converts VGA to DP.")
+	vgaa.vga.show()
+}
+
+```
+
+##### Adaptee : VGA.go
+
+```go
+package main
+
+import "fmt"
+
+type VGA struct{}
+
+func (vga *VGA) show() {
+	fmt.Println("VGA monitor displaying......")
+}
+
+```
+
+##### client : client.go
+
+```go
+package main
+
+import "fmt"
+
+type client struct {
+}
+
+func (c *client) watch(m monitor) {
+	fmt.Println("Client start up monitor.")
+	m.display()
+}
+
+```
+
+##### main.go
+
+```go
+package main
+
+func main() {
+	c := &client{}
+
+	dp := &Display{}
+	c.watch(dp)
+
+	vga := &VGA{}
+	vgaa := &VGA_Adapter{vga: vga}
+	c.watch(vgaa)
+}
+
 ```
 
