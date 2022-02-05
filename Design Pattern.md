@@ -1542,3 +1542,201 @@ func main() {
 
 ```
 
+### 享元模式 ( Flyweight Pattern )
+
+#### 定義
+
+運用共有技術有效的支援大量細粒度的物件。
+
+#### UML
+
+<img src="Design Pattern.assets/201125283SJnVhfd6y.png" style="zoom:67%;" />
+
+#### 優點
+
+- 如果程式中有很多相似對象， 那麼將可以節省大量內存。有分為可以共享的資料和不能共享的資料，可以共享的資料稱為內部狀態，不能共享的資料稱為外部狀態。
+
+#### 缺點
+
+- 可能需要犧牲執行速度來換取內存，因為他人每次調用享元方法時都需要重新計算部分情景數據。
+- 程式碼會變得更加復雜。團隊中的新成員總是會問："為什麼要像這樣拆分一個實體的狀態？"。
+
+#### Golang範例
+
+##### Flyweight interface : jersey.go
+
+```go
+package main
+
+type jersey interface {
+	getColor() string
+}
+
+```
+
+##### 具體Flyweight對象 : home_jersey.go
+
+```go
+package main
+
+type homeJersey struct {
+	color string
+}
+
+func (h *homeJersey) getColor() string {
+	return h.color
+}
+
+func newHomeJersey() *homeJersey {
+	return &homeJersey{color: "light"}
+}
+
+```
+
+##### 具體Flyweight對象 : away_jersey.go
+
+```go
+package main
+
+type awayJersey struct {
+	color string
+}
+
+func (a *awayJersey) getColor() string {
+	return a.color
+}
+
+func newAwayJersey() *awayJersey {
+	return &awayJersey{color: "dark"}
+}
+
+```
+
+##### Flyweight Factory : jerseyFactory.go
+
+```go
+package main
+
+import "fmt"
+
+const (
+	homeJerseyType = "hJersey"
+	awayJerseyType = "aJersey"
+)
+
+type jerseyFactory struct {
+	jerseymap map[string]jersey
+}
+
+var (
+	jerseyFactorySingleInstance = &jerseyFactory{make(map[string]jersey)}
+)
+
+func getJerseyFactory() *jerseyFactory {
+	return jerseyFactorySingleInstance
+}
+
+func (j *jerseyFactory) getJerseyByType(jerseytype string) (jersey, error) {
+	if j.jerseymap[jerseytype] != nil {
+		return j.jerseymap[jerseytype], nil
+	}
+
+	if jerseytype == homeJerseyType {
+		j.jerseymap[jerseytype] = newHomeJersey()
+		return j.jerseymap[jerseytype], nil
+	}
+
+	if jerseytype == awayJerseyType {
+		j.jerseymap[jerseytype] = newAwayJersey()
+		return j.jerseymap[jerseytype], nil
+	}
+
+	return nil, fmt.Errorf("wrong jersey type.")
+}
+
+```
+
+##### player.go
+
+```go
+package main
+
+type player struct {
+	jersey     jersey
+	playerType string
+	number     int
+	position   string
+}
+
+func newPlayer(playerType string, jerseyType string) *player {
+	jersey, _ := getJerseyFactory().getJerseyByType(jerseyType)
+	return &player{playerType: playerType, jersey: jersey}
+}
+
+func (p *player) setPosition(position string) {
+	p.position = position
+}
+
+func (p *player) setNumber(num int) {
+	p.number = num
+}
+
+```
+
+##### game.go
+
+```go
+package main
+
+type game struct {
+	homePlayers []*player
+	awayPlayers []*player
+}
+
+func newGame() *game {
+	return &game{
+		homePlayers: make([]*player, 1),
+		awayPlayers: make([]*player, 1),
+	}
+}
+
+func (g *game) addHomePlayer(jerseyType string) {
+	player := newPlayer("Home", jerseyType)
+	g.homePlayers = append(g.homePlayers, player)
+}
+
+func (g *game) addAwayPlayer(jerseyType string) {
+	player := newPlayer("Away", jerseyType)
+	g.awayPlayers = append(g.awayPlayers, player)
+}
+
+```
+
+##### main.go
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	game := newGame()
+
+	game.addHomePlayer(homeJerseyType)
+	game.addHomePlayer(homeJerseyType)
+	game.addHomePlayer(homeJerseyType)
+	game.addHomePlayer(homeJerseyType)
+
+	game.addAwayPlayer(awayJerseyType)
+	game.addAwayPlayer(awayJerseyType)
+	game.addAwayPlayer(awayJerseyType)
+	game.addAwayPlayer(awayJerseyType)
+
+	jerseyFactory := getJerseyFactory()
+	for jerseyType, jersey := range jerseyFactory.jerseymap {
+		fmt.Printf("JerseyColorType : %s\t JerseyColor : %s\n", jerseyType, jersey.getColor())
+	}
+}
+
+```
+
