@@ -1740,3 +1740,120 @@ func main() {
 
 ```
 
+
+
+### 代理模式 (Proxy Pattern)
+
+#### 定義
+
+為其他物件提供一種代理以控制對這個物件的存取
+
+#### UML
+
+<img src="Design Pattern.assets/20112528yvIG5prb1m.png" style="zoom:67%;" />
+
+#### 優點
+
+- 你可以在客戶端毫無察覺的情況下控制服務對象。
+- 如果客戶端對服務對象的生命周期沒有特殊要求，你可以對生命周期進行管理。
+- 即使服務對象還未準備好或不存在，代理也可以正常工作
+- 開閉原則。你可以在不對服務或客戶端做出修改的情況下創建新代理。
+
+#### 缺點
+
+- 程式碼可能會變得復雜，因為需要新建許多類。
+- 服務響應可能會延遲。
+
+#### Golang範例
+
+##### subject interface : iBuyHouse.go
+
+```go
+package main
+
+type iBuyHouse interface {
+	findHouse()
+	bargain()
+	make_deal()
+}
+
+```
+
+##### realSubject : me.go
+
+```go
+package main
+
+import "fmt"
+
+type me struct{}
+
+func (m *me) findHouse() {
+	fmt.Println("找好房子ing")
+}
+
+func (m *me) bargain() {
+	fmt.Println("議價......")
+}
+
+func (m *me) make_deal() {
+	fmt.Println("成交!!!")
+}
+
+```
+
+##### Proxy : EstateAgent.go
+
+```go
+package main
+
+import "fmt"
+
+type EstateAgent struct {
+	customer *me
+}
+
+func (e *EstateAgent) findHouse() {
+	e.customer.findHouse()
+	fmt.Println("仲介幫忙找")
+}
+
+func (e *EstateAgent) bargain() {
+	e.customer.bargain()
+	fmt.Println("仲介幫忙議價")
+}
+
+func (e *EstateAgent) make_deal() {
+	e.customer.make_deal()
+	fmt.Println("仲介幫忙處理相關手續")
+}
+
+```
+
+##### client : main.go
+
+```go
+package main
+
+func main() {
+	m := &me{}
+
+	estateAgent := &EstateAgent{m}
+
+	estateAgent.findHouse()
+	estateAgent.bargain()
+	estateAgent.make_deal()
+}
+
+/*
+Output:
+找好房子ing
+仲介幫忙找
+議價......
+仲介幫忙議價
+成交!!!
+仲介幫忙處理相關手續
+*/
+
+```
+
